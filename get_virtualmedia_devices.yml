@@ -1,0 +1,42 @@
+
+  #
+  # before tasks, initialize an array
+  #
+  vars:
+    vm_devices: []
+  
+  #
+  # tasks
+  #
+  tasks:
+  
+    #
+    # get the virtualmedia json reply
+    # below values should be filled according to environment:
+    # management_ip
+    # manager_name
+    # management_user
+    # management_password
+    #
+    - name: Get Redfish virtualmedia output
+      uri:
+        url: https://<management_ip>/redfish/v1/Managers/<manager_name>/VirtualMedia
+        validate_certs: no
+        method: GET
+        return_content: yes
+        user: "<management_user>"
+        password: "<management_password>"
+        force_basic_auth: yes
+        headers:
+                Content-Type: application/json
+                Accept: application/json
+      register: virtualmedia_output
+    
+    #
+    # append the virtualmedia devices to vm_devices array
+    #
+    - name: Append virtualdevice url to vm_devices
+      set_fact:
+        vm_devices: "{{ vm_devices + [ item[\"@odata.id\"]] }}"
+      loop: "{{ virtualmedia_output.json.Members }}"
+  
